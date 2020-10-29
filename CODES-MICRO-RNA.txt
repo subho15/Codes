@@ -1,0 +1,174 @@
+#! /usr/bin/perl
+use Algorithm::LCS;
+$alg = Algorithm::LCS->new;
+
+#Enter the micro RNA sequence
+print “Enter the microRNA sequence:”;
+$miRNA=<stdin>;
+chomp($miRNA);
+$comRNA=$miRNA;
+$miRNA=uc $miRNA;
+$comRNA=uc $comRNA;
+@miRNA=split(“”,$comRNA);
+open(FLHD,”>>DNASeq.txt”), or die(“Cannot open this file”);
+
+#To find out the length
+$len_mirna=length($miRNA);
+
+#Find out the complementarity
+$comRNA=~ tr/AUCG/TAGC/;
+@comRNA=split(“”,$comRNA);
+
+#Write the complementary sequence to a file
+open(FILE,”>/home/students/amm07bio19/BLAST/blast-2.2.18/bin/bb/test.txt”) or (“Cannot open the file”);
+while(FILE)
+{
+	last if print FILE “$comRNA”;
+}
+close(FILE);
+
+#To execute the blast code
+`./blastall -p blastn -d ./bb/celegans.fasta -i ./bb/test.txt -o ./bb/test3.out`;
+open(FILE1,“/home/students/amm07bio19/BLAST/blast-2.2.18/bin/bb/test3.out”) or (“Cannot open the file”);
+@data=<FILE1>;
+close(FILE);
+
+#For finding the potential mRNA sequence target 
+foreach $x(@data)
+{
+	if($x=~m/^Sbjct:/)
+	{
+		push(@mRNA,$x);
+		$x=~m/^Sbjct:\s*(\d+)\D+(\d+)\s*$/;
+		$start=$1;
+		$end=$2;
+		push(@start_pos,$start);
+		push(@end_pos,$end);
+	}
+	elseif($x=~m/^>/)
+	{
+		$i=index($x,‘|’);
+		$j=index(($x,‘|’,$i+1);
+		$len=$j-$i;
+		$sequen_id=substr($x,$i+1,$len-1);
+		push(@seq_id,$sequen_id);
+	}
+}
+
+#Validation of the sequence
+foreach $y(@mRNA)
+{
+	$y=~s/Sbjct://;
+	$y=~tr/atgc//cd;
+	push(@mmRNA,$y);
+}
+
+#To find out the position of the target sequence in the database
+@start=map($_-10,@start_pos);
+@end=map($_+10,@end_pos);
+$size=@start_pos;
+
+#To find out the length of the target sequence
+for($i=0;$i<$size;$i++)
+{
+	$seq_length=$end[$i]-$start[$i];
+	push(@seq_len,$seq_length);
+}
+
+#Taking the sequence from the c.elegans database
+open(FILE1,”/home/students/amm07bio19/BLAST/blast-2.2.18/bin/bb/celegans.fasta”) or (“Cannot open the file”);
+@data2=<FILE1>;
+Close(FILE1);
+
+#Join the array into a scalar variable
+$dbinfo=join(“”,@data2);
+@dbinfo2=split(“>”,$dbinfo);
+
+#For extracting the target sequence from the celegans database
+$size=@seq_id;
+for($i=0;$i<$size;$i++)
+{
+	foreach $z(@dbinfo2)
+	{
+		if($z=~m/$seq_id[$i]/)
+		{
+			$z=~s/.*mRNA//;
+			$z=~s/.*alternatively spliced//;
+			$z=~tr/[ATGC]//cd;
+			$z=~tr/\s//d;
+			push(@tar,$z);
+		}
+	}
+}
+$i=0;
+	foreach $x(@tar)
+	{
+		$x=~s/.*alternatively spliced//;
+			$x=~s/.*mRNA//;
+		$x=~tr/[ATGC]//cd;
+		$x=~tr/\s//d;
+		push(@target,substr($x,$start[$i],$seq_len[$i]));
+			$i++;
+	}
+$count=0;
+
+#Output redirection
+print “\nEnter the output file name:”;
+$outfile=<stdin>;
+chomp($outfile);
+open(FILE1,”>>$outfile”) or (“Cannot open the file”);
+{
+print FILE1 “\nMICRO-RNA TARGET
+DETECTION\n****************************\n\nMicroRNA:$miRNA\nDatabase:
+Caenorhabditis elegans\n”;
+}
+close(FILE1);
+
+#Each sequence in the array passed into the LCS module
+foreach $x(@target)
+{
+	@align=qw();
+	@tar=split(“”,$x);
+	$seq_len=@tar;
+	$rna_len=@comDNA;
+	@lc=$alg->LCS(\@comRNA,\@tar);
+	foreach $y(@lc)
+	{
+		push(@arr,@{$y});
+	}
+	$lt=@arr;
+$lt--;
+	$a=0;
+	for($i=0;$i<$lt;$i=$i+2)
+{
+	$z=$arr[$i];
+		$w=$arr[$i+1];
+			$align[$z]=$tar[$w];
+			$z=“”;
+			$w=“”;
+}
+	$len_alig=@align;
+#For inserting the _ for alignment
+for($i=0;$i<$len_alig;$i++)
+{
+if($align[$i])
+{
+	next;
+}
+else
+{
+	$align[$i]=‘-’;
+}
+}
+
+#Opening the file for appending each sequence alignment
+open(FILE1,”>>$outfile”) or (“Cannot open the file”);
+{
+	print FILE1 “\n\n$seq_id[$count]\tStarting
+position:$start[$count]\tEnd
+position:$end[$count]\nRNA:@miRNA\nSEQ:@align\n”;
+}
+close(FILE1);
+$count++;
+@arr=();
+}
