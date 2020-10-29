@@ -1,0 +1,697 @@
+A.	Source Code for Main Programming Domain DNA-FAM
+use mutate;
+use random;
+use similarity;
+use sixframe;
+
+#!usr/bin/perl
+
+do
+
+{
+	print "\n================================================================\n";
+
+ print "    ****** WELCOME ****** TO ****** DNA FAM ****** WORLD ******\n";
+	
+print"=============================================================\n\n";
+print "   *!*!*!*!*  OPTIONS FOR UR DNA FAM FUNCTIONALITIES  *!*!*!*!*\n\n";
+	print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+	print "(1). Mutation Of DNA\n";
+	print "(2). To Generate Random Sequence & Find Percentage Similarity\n";
+	print "(3). To read DNA in Six Frame\n";
+	print "(4). Exit\n";
+	print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n";
+	print "plz... enter ur choice ====> ";
+	chomp($choice=<STDIN>);
+	print "\n===============================================================\n\n";
+
+	if($choice eq 1)			# to perform mutation on entered DNA
+
+	{
+		# mutate dna
+		# using a random number generator to randomly select bases to mutate
+		# declare the variables
+		# the dna is chosen to make it easy to see mutations
+		print "<= You Have Selected The Option (1) To Cause DNA Mutation =>\n\n";
+		print"Enter the DNA sequence ===>\n\n";
+		chomp(my $dna1=<stdin>);
+		# $i is common name for a counter variable,short for "integer"
+		my $i;
+
+		my $mutant;
+
+		# seed the random number generator
+		# time|$$ combines the current time with the current process id
+		srand(time|$$);
+
+		# lets test it,shall we?
+		$mutant = mutate($dna1);
+		print "\n\n\t\t -----------------------------------------------------";
+		print "\n\t\t <===== MUTATTION PROCESS =====>\n";
+		print "\t\t -----------------------------------------------------\n\n";
+		print "\nThe Original DNA ===>\n\n";
+		print "$dna1\n";
+
+		print "\nThe Mutant DNA ===>\n\n";
+		print "$mutant\n";
+
+		# let's put it in a loop and watch that bad boy accumulate mutations
+		print "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+		print "\nTen More successive mutations Of The DNA ===>\n\n";
+
+		for($i=0 ; $i<10 ; ++$i)
+		{
+			$mutant = mutate($mutant);
+			print "$mutant\n";
+		}
+		print "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+	}
+
+	elsif($choice eq 2)				#to generate random DNA
+
+	{
+		# generate random dna
+		# using a random number generator to randomly select base
+
+		# declare and initialize the variables
+		print "<= You Have Selected The Option (2) To Generate Random DNA=>\n\n";
+		print"<><><><><><><><><><><><><><><><><><><><><><><><><><><><\n\n";
+		print "Enter The No Of DNA Sequence To Be Generated ====>\t";
+		chomp($size_of_set=<STDIN>);
+		print "\n\nEnter The Maximum Length Of The DNA ====>\t";
+		chomp($maximum_length=<STDIN>);
+		print "\n\nEnter The Minimum Length Of The DNA ====>\t";
+		chomp($minimum_length=<STDIN>);
+
+		# an array, initialized to empty list,to store the dna in
+		my @random_DNA = ();
+
+		# seed the random number generator
+		# time|$$ combines the current time with the current process id
+		srand(time|$$);
+
+		# and here's the subroutine call to do the real work
+		@random_DNA = make_random_DNA_set( $minimum_length,
+                                                                             $maximum_length, $size_of_set );
+
+		# print the results, one per line
+		print"\n*************************************************************\n\n";
+		print "\t** Here Is An Array Of ** $size_of_set ** Randomly Generated DNA 
+                                      Sequences **\n\n";
+		print "\t\t*** with lengths between *** $minimum_length *** and ***
+                                     $maximum_length *** \n\n";
+		print"**************************************************************\n\n";
+		foreach my $dna(@random_DNA) 
+		{
+			print "$dna\n\n";
+		}
+	
+
+		# to look for % similarity in DNA
+
+		# calculate the average percentage of positions that are the same
+		# between two random DNA sequence,in a set of 10 sequence
+
+		# declare and initialize the variables
+		my $percent;
+		my @percentages;
+		my $result;
+
+
+		# iterate through all pairs of sequence
+		for (my $k = 0 ; $k < scalar @random_DNA - 1 ; ++$k) 
+		{
+			for (my $i = ($k + 1); $i < scalar @random_DNA ; ++$i) 
+			{
+		
+				# calculate and save the matching percentage
+				$percent = matching_percentage($random_DNA[$k],
+                                                                                                           $random_DNA[$i]);
+				push(@percentages, $percent);
+			}
+		}
+
+		# finally, the average result
+		$result = 0;
+
+
+		foreach $percent(@percentages) 
+		{
+			$result += $percent;
+		}
+
+		$result = $result/scalar(@percentages);
+		# turn result into a true percentage
+		$result = int($result * 100);
+
+		print "\tIn This Run Of The Experiment,The Average Percentage Of \n\n";
+		print "\t\tMatching Positions Is =====>  $result%\n\n";
+		print"<><><><><><><><><><><><><><><><><><><><><><><><><><><><>\n";
+		print "\n\n";
+
+	}
+
+	elsif($choice eq 3)
+	{
+
+		#translation of DNA in six reading frame
+		open(FILE,"fasta.txt");
+		while(<FILE>)
+		{
+			$dna=$dna.$_;
+		}
+		print $dna;
+		print "\n";
+		$dna=~s/[^ATGC]//gi;
+		$dna=~tr/aA/uU/;
+		@dna=split(undef,$dna);
+		$r1=$dna;
+		print "\t~~~~~~~~~~~~~~ READING FRAME 1 ~~~~~~~~~~~~~~\n";
+		print $r1;
+		print "\n\n";
+
+		shift(@dna);
+		$r2=join(undef,@dna);
+		print "\t~~~~~~~~~~~~~~ READING FRAME 2 ~~~~~~~~~~~~~~~~\n";
+		print $r2;
+		print "\n\n";
+
+		shift(@dna);
+		$r3=join(undef,@dna);
+		print "\t~~~~~~~~~~~~~~~ READING FRAME 3 ~~~~~~~~~~~~~~~~\n";
+		print $r3;
+		print "\n\n";
+		
+		$rev=reverse($dna);
+		print "\t~~~~~~~~~~~~~~ REVERSE OF DNA ~~~~~~~~~~~~~~~~~~~\n";
+		print $rev;
+		print "\n\n";
+	
+		@rev=split(undef,$rev);
+		$r4=$rev;
+		print "\t~~~~~~~~~~~~~~~ READING FRAME 4 ~~~~~~~~~~~~~~~~\n";
+		print $r4;
+		print "\n\n";		
+	
+		shift(@rev);
+		$r5=join(undef,@rev);
+		print "\t~~~~~~~~~~~~~~ READING FRAME 5 ~~~~~~~~~~~~~~~~~\n";
+		print $r5;
+		print "\n\n";
+	
+		shift(@rev);
+		$r6=join(undef,@rev);
+		print "\t~~~~~~~~~~~~~~ READING FRAME 6 ~~~~~~~~~~~~~~~~~\n";
+		print $r6;
+		print "\n\n";
+
+		
+	
+		@trans=("$r1","$r2","$r3","$r4","$r5","$r6");
+		$j=1;
+		foreach $val(@trans)
+		{
+			$l=length($val);
+			print"len=$l\n\n";
+			$i=0;
+			while($i<$l)
+			{
+	
+				$str=substr($val,$i,3);
+				$i=$i+3;
+				print "str: $str\n\n";
+				if(length($str)==3)
+				{
+					$amino=&translate_codon($str);
+					push(@prot,$amino);
+				}
+		
+			}
+	
+			print "READING FRAME $j :\n\n";
+			$j=$j+1;
+			$len=@prot;
+			print "length:$len\n\n";
+			$prot=join(undef,@prot);
+			$prot=~s/\s*//g;
+			print "$prot";
+			@prot=();
+		}
+		print"\n\n";
+	}
+
+	else
+
+	{
+		print "\t\t Sorry!!! plz.... Enter A Correct Choice \n\n"
+	}
+}while($choice ne 4);
+
+print "\n************* THANK YOU FOR USING OUR SERVICE ************\n\n";
+print"=============================================================\n\n";
+B.	Source Code for First Subroutine MUTATE.PM
+	The subroutine first selects a random position in a string of DNA using random position subroutine and calls the DNA strand to seed the random number generator. This helps in the initiation of point mutation. It is followed by selection of a random nucleotide which is placed into a random position using the mutate subroutine, to unfold the process of mutation and disease abnormalities attached with it, during DNA replication.
+
+package mutate;
+require Exporter;
+@ISA=qw(Exporter);
+@EXPORT=qw(mutate randomelement randomnucleotide randomposition);
+
+BEGIN
+{
+	push(@INC,"/home/perl_DNAFAM_project");
+}
+
+##############################################################################
+#                          subroutines begin for mutant dna                                                                          #
+##############################################################################
+
+
+# a subroutine to perform a mutation in a string of dna
+#
+# WARNING: make sure you call srand to see the
+# random number generator before you call this function
+
+sub mutate {
+
+	my($dna) = @_;
+	
+	my(@nucleotides) = ('A', 'C', 'G', 'T');
+
+	# pick a random position in the dna
+	my($position) = randomposition($dna);
+
+	# pick a random nucleotide
+	my($newbase) = randomnucleotide(@nucleotides);
+
+	# insert the random nucleotide into the random position in the dna
+	# the substr arguments mean the following
+	# in the string $dna at position $position change 1 character to
+	# the string in $newbase
+	substr($dna,$position,1,$newbase);
+
+	return $dna;
+}
+
+# a subroutine to randomly select an element from an array
+#
+# WARNING: make sure you call srand to seed the
+# random number generator before you call yhis function
+
+sub randomelement {
+
+	my(@array) = @_;
+
+	return $array[rand @array];
+}
+
+# randomnucleotide
+#
+# a subroutine to select at random one of the four nucleotides
+#
+# WARNING: make sure you call srand to seed the
+# random number generator before you call this function
+
+sub randomnucleotide {
+
+	my(@nucleotides) = ('A', 'C', 'G', 'T');
+	
+	# scalar returns the size of an array
+	# the elements of the array are numbered 0 to size-1
+	return randomelement(@nucleotides);
+}
+
+# randomposition
+#
+# a subroutine to randomly select a position in a string
+#
+# WARNING: make sure you call srand to seed the
+# random number generator before you call this function
+
+sub randomposition {
+
+	my($string) = @_;
+
+	# notice the "nested" arguments
+	#
+	# $string is the argument to length
+	# length($string) is the argument to rand
+	# rand(length($string))) is the argument to int
+	# int(rand(length($string))) is the argument to return
+	# but we write it without parentheses, as permited
+	#
+	# rand returns a decimal number between 0 and its argument
+	# int returns the integer portion of a decimal number
+	#
+	# the whole expression returns a random number between 0 and length-1
+	# which is howposition in a string are numbered in perl
+	#
+	
+	return int rand length $string;
+}
+C.	Source Code for Second Subroutine RANDOM.PM
+An array is initialized to store the DNA sequence. The random number generator is seeded (a) to make a set of random DNA, (b) to accept parameters setting the maximum and minimum length of each string of DNA, and (c) to select one nucleotide / element randomly from the array, upon which phenotypic and genotypic alterations are studied.
+
+package random;
+require Exporter;
+@ISA=qw(Exporter);
+@EXPORT=qw(make_random_DNA_set randomlength make_random_DNA randomnucleotide randomelement);
+
+BEGIN
+{
+	push(@INC,"/home/perl_DNAFAM_project");
+}
+
+#############################################################################                                                                                                                                                           #			subroutines for generation of random dna                                               #
+#############################################################################
+
+# make_random_DNA_set
+#
+# make a set of random DNA
+#
+# accept parameters setting maximum and minimum length of
+# each strings of DNA, and the number of DNA strings to make
+#
+# WARNING: make sure you call srand to seed the
+# random number generator before you call this function
+
+sub make_random_DNA_set {
+
+	# collect arguments, declare variables
+	my($minimum_length, $maximum_length, $size_of_set) = @_;
+	
+	# length of each DNA fragment
+	my $length;
+
+	# DNA fragments
+	my $dna;
+
+	# set of DNA fragments
+	my @set;
+
+	# create set of random DNA
+	for (my $i = 0; $i < $size_of_set; ++$i) {
+
+	# find a random length between min and max
+	$length = randomlength($minimum_length, $maximum_length);
+
+	# make a random DNA fragment
+	$dna = make_random_DNA( $length );
+
+	# add $dna fragment to @set
+	push( @set, $dna );
+	}
+return @set;
+}
+
+# needed: randomlength, which will return a random
+# number between(or including)the min and max values
+
+# randomlength
+#
+# a subroutine that will pick a random number from
+# $minlength to $maxlength, inclusive
+#
+# WARNING: make sure you call srand to seed the 
+# random number generator before you call this function
+
+sub randomlength {
+
+	# collect arguments, declare variables
+	my($minlength, $maxlength) = @_;
+
+	# calculate and return a random number within the
+	# desired interval,
+	# notice how we need to add one to make the endpoints inclusive
+	# and how we first subtract,then add back, $minlength to
+	# get the random number in the correct interval
+	return( int(rand($maxlength - $minlength + 1)) + $minlength );
+}
+
+# make_random_DNA
+#
+# make a string of random DNA of specified length
+#
+# WARNING: make sure you call srand to seed the
+# random number generator before you call this function
+
+sub make_random_DNA {
+
+	# collect arguments, declare variables
+	my($length) = @_;
+	
+	my $dna;
+
+	for (my $i=0 ; $i < $length ; ++$i) {
+	
+		$dna.= randomnucleotide();
+	}
+return $dna;
+}
+
+# randomnucleotide
+# here it is there for completeness
+
+# randomnucleotide
+#
+# select at random one of the four nucleotides
+#
+# WARNING: make sure you call srand to seed the
+# random number generator you call this function
+
+sub randomnucleotide {
+
+	my(@nucleotides) = ('A', 'C', 'G', 'T');
+	
+	# scalar returns the size of an array
+	# the elements of the array are numbered 0 to size-1
+	return randomelement(@nucleotides);
+}
+
+# randomelement
+#
+# randomly select an element from an array
+#
+# WARNING: make sure you call srand to seed the 
+# random number generator before you call this function
+
+sub randomelement {
+
+	my(@array) = @_;
+
+	return $array[rand @array];
+}
+D.	Source Code for Third Subroutine SIMILARITY.PM
+An array is initialized to store the DNA. Seed the random number generator and generate the data set of sequences along with its iteration through all the pairs. The percentage of matching positions are then calculated. The subroutine matching_percentage is evoked to calculate the percentage of identical bases in two equal lengths of DNA sequences. This is followed by calling subroutine make_random_dna_set, for making a set of random DNAs. Furthermore, the random number is picked by using the subroutine randomlength. Finally, the subroutine make_random_dna is called to make a random DNA of specific length which is then preceded by selecting a random nucleotide from an array by the functionality of subroutine randomnucleotide and randomelement, for calculation of percentage identity between random DNA sequences.
+
+package similarity;
+require Exporter;
+@ISA=qw(Exporter);
+@EXPORT=qw(matching_percentage make_random_DNA_set randomlength make_random_DNA randomnucleotide randomelement);
+
+BEGIN
+{
+	push(@INC,"/home/perl_DNAFAM_project");
+}
+
+
+##############################################################################
+#	      subroutine for checking percentage similarity between the sequences	                        #
+##############################################################################
+
+# matching_percentage
+#
+# subroutine to calculate the percentage of identical bases in two
+# equal length DNA sequence
+
+sub matching_percentage {
+
+	my($string1, $string2) = @_;
+
+	# we assume that the strings have the same length
+	my($length) = length($string1);
+	my($position);
+	my($count) = 0;
+	
+	for($position=0; $position < $length; ++$position) {
+		if(substr($string1,$position,1) eq substr($string2,$position,1)) {
+			++$count;
+		}
+	}
+	return $count / $length;
+}
+
+# make_random_DNA_set
+#
+# subroutine to make a set of random DNA
+#
+# accept parameters setting the maximum and minimum length of
+# each string of DNA and the number of DNA strings to make
+#
+# WARNING: make sure you call srand to seed the
+# random number generator before you call this function
+
+sub make_random_DNA_set {
+
+	# collect arguments, declare variables
+	my($minimum_length, $maximum_length, $size_of_set) = @_;
+
+	# length of each DNA fragment
+	my $length;
+	
+	# DNA fragment
+	my $dna;
+
+	# set of DNA fragments
+	my @set;
+	
+	# create set of random DNA
+	for (my $i = 0; $i < $size_of_set; ++$i) {
+
+		# find a random length between min and max
+		$length = randomlength($minimum_length, $maximum_length);
+
+		# make a random DNA fragment
+		$dna = make_random_DNA( $length );
+
+		# add $dna fragment to @set
+		push( @set, $dna );
+	}
+	
+	return @set;
+}
+
+# randomlength
+#
+# a subroutine that will pick a random number from 
+# $minlength to $maxlength inclusive.
+#
+# WARNING: make sure you call srand to seed the
+# random number generator before you call this function
+
+sub randomlength {
+
+	# collect arguments, declare variables
+	my($minlength, $maxlength) = @_;
+
+	# calculate and return a random numberwithin the 
+	# desired interval
+	# notice how we need to add one to make the endpoints inclusive,
+	# and how we first subtract, then add back, $minlength to
+	# get the random number in the correct interval
+	return( int(rand($maxlength - $minlength + 1)) + $minlength );
+}
+
+# make_random_DNA
+#
+# make a string of random DNA of specified length
+#
+# WARNING: make sure you call srand to seed the
+# random number generator before you call this function
+
+sub make_random_DNA {
+
+	# collect arguments, declare variables
+	my($length) = @_;
+	
+	my $dna;
+
+	for (my $i=0 ; $i < $length ; ++$i) {
+	
+		$dna.= randomnucleotide();
+	}
+return $dna;
+}
+
+# randomnucleotide
+#
+# select at random one of the four nucleotides
+#
+# WARNING: make sure you call srand to seed the
+# random number generator you call this function
+
+sub randomnucleotide {
+
+	my(@nucleotides) = ('A', 'C', 'G', 'T');
+	
+	# scalar returns the size of an array
+	# the elements of the array are numbered 0 to size-1
+	return randomelement(@nucleotides);
+}
+# randomelement
+#
+# randomly select an element from an array
+#
+# WARNING: make sure you call srand to seed the 
+# random number generator before you call this function
+
+sub randomelement {
+
+	my(@array) = @_;
+
+	return $array[rand @array];
+}
+E.	Source Code for Fourth Subroutine SIXFRAME.PM
+A portion of DNA which contains no stop codon (when translated into amino acids) is known as an open reading frame (ORF). The DNA sequences genetic codes are read in group of three base pairs, i.e., the double-stranded DNA can read in any of the six possible open reading frames. It reads three in the forward direction and three in the reverse direction. A long ORF is likely to be part of a gene. As the process begins with the translation of DNA into amino acids, therefore the subroutine translate codon is been activated. Furthermore, an array is initialized and validated. Finally, in a loop the subroutine translate codon is called and the open reading frames are achieved.
+
+package sixframe;
+require Exporter;
+@ISA=qw(Exporter);
+@EXPORT=qw(translate_codon);
+
+BEGIN
+{
+	push(@INC,"/home/perl_DNAFAM_project");
+}
+
+############################################################################
+#		                subroutine to translate dna to six frame		                                 #
+############################################################################
+
+sub translate_codon {
+
+$codon=shift;
+print "codon: $codon \t";
+if ( $codon =~m /GC[AGCU]/i ) { return A;} # Alanine;
+
+if ( $codon =~m/UGC|UGU/i ) { return C;} # Cysteine
+
+if ( $codon =~m/GAC|GAU/i ) { return D;} # Aspartic Acid;
+
+if ( $codon =~m/GAA|GAG/i ) { return E;} # Glutamine;
+
+if ( $codon =~ m/UUC|UUU/i ) { return F;} # Phenylalanine;
+
+if ($codon =~m/GG[AGCU]/i ) { return G;} # Glycine;
+
+if ( $codon =~ m/CAC|CAU/i ) { return H;} # Histine (start codon);
+
+if ( $codon =~ m/AU[AUC]/i ) { return I;} # Isoleucine;
+
+if ( $codon =~ m/AAA|AAG/i ) { return K;} # Lysine;
+
+if ( $codon =~ m/UUA|UUG|CU[AGCU]/i ) { return L;} # Leucine;
+
+if ( $codon =~ m/AUG/i ) { return M;} # Methionine;
+
+if ( $codon =~ m/AAC|AAU/i ) { return N;} # Asparagine;
+
+if ( $codon =~ m/CC[AGCU]/i ) { return P;} # Proline;
+
+if ( $codon =~ m/CAA|CAG/i ) { return Q;} # Glutamine;
+
+if ( $codon =~ m/AGA|AGG|CG[AGCU]/i ) { return R;} # Arginine;
+
+if ( $codon =~ m/AGC|AGU|UC[AGCU]/i ) { return S;} # Serine;
+
+if ( $codon =~ m/AC[AGCU]/i ) { return T;} # Threonine;
+
+if ( $codon =~ m/GU[AGCU]/i ) { return V;} # Valine;
+
+if ( $codon =~ m/UGG/i ) { return W;} # Tryptophan;
+
+if ( $codon =~ m/UAC|UAU/i ) { return Y;} # Tyrosine;
+
+if ( $codon =~ m/UAA|UGA|UAG/i ) { return "***" ;} # Stop Codons;
+
+}
